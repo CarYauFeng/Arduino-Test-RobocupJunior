@@ -1,0 +1,197 @@
+#include <NewPing.h>
+#include <Adafruit_TCS34725.h>
+
+// Motor A - Derecho
+int ENA = 10;  
+int IN1 = 4;   
+int IN2 = 5; 
+
+// Motor B - Izquierdo
+int ENB = 9;  
+int IN3 = 6;  
+int IN4 = 7;  
+
+int RIGHT = A0;  
+int LEFT = A1;   
+
+#define TRIG A2           
+#define ECHO A3           
+#define MAX_DISTANCE 100  
+
+NewPing sonar(TRIG, ECHO, MAX_DISTANCE);
+
+const int TILT_SENSOR = 2;
+
+// Pin del zumbador
+const int BUZZER_PIN = 13;
+
+// Pines del sensor de color
+const int S0_PIN = A8;
+const int S1_PIN = A9;
+const int S2_PIN = A10;
+const int S3_PIN = A11;
+const int OUT_PIN = A12;
+const int LED_PIN = 12;  // Pin del LED
+
+// Inicializa el sensor de color
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
+
+void setup() {
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(RIGHT, INPUT);
+  pinMode(LEFT, INPUT);
+  pinMode(TILT_SENSOR, INPUT);
+  digitalWrite(TILT_SENSOR, HIGH);
+  pinMode(BUZZER_PIN, OUTPUT);  // Configurar el pin del zumbador como salida
+  pinMode(LED_PIN, OUTPUT);  // Configurar el pin del LED como salida
+  Serial.begin(9600);
+  if (tcs.begin()) {
+    Serial.println("Sensor de color encontrado");
+  } else {
+    Serial.println("No se encontró el sensor de color");
+    while (1);
+  }
+}
+
+void loop() {
+  int tiltState = digitalRead(TILT_SENSOR);
+  if (tiltState == LOW) {
+    Serial.println("inclinado avanzando lento ");
+    moveForwardSlow();
+    return;  
+  }
+
+  delay(70);
+  int distance = sonar.ping_cm();
+  if (distance == 0) {
+    distance = 30;
+  }
+  if (distance <= 10 ) {  
+    Serial.println("detecte algo");
+    Stop();
+    delay(100);
+    turnRight();
+    delay(580);
+    moveForward();
+    delay(450);
+    turnLeft();
+    delay(550);
+    moveForward();
+    delay(700);
+    turnLeft();
+    delay(500);
+    moveForward();
+    delay(480);
+    turnRight();
+    delay(500);
+  }
+  if (analogRead(RIGHT) <= 35 && analogRead(LEFT) <= 35) {  
+    Serial.println("ir adelante");
+    moveForward();
+
+  } else if (analogRead(RIGHT) <= 35 && !analogRead(LEFT) <= 35) {  
+    Serial.println("ir derecha");
+    Stop();
+    delay(50);
+    girarRightInfra();
+
+  } else if (!analogRead(RIGHT) <= 35 && analogRead(LEFT) <= 35) {  
+    Serial.println("ir izquierda");
+    Stop();
+    delay(50);
+    girarLeftInfra();
+
+  } else if (!analogRead(RIGHT) <= 35 && !analogRead(LEFT) <= 35) {  
+    Serial.println("para");
+    Stop();
+  }
+
+  uint16_t r, g, b, c;
+  tcs.getRawData(&r, &g, &b, &c);
+  // Ajusta estos valores según las lecturas que obtengas para el color plateado
+  if (r > 100 && g > 100 && b > 100) {
+    Serial.println("Color plateado detectado");
+    digitalWrite(BUZZER_PIN, HIGH);
+    digitalWrite(LED_PIN, HIGH);  // Encender el LED
+    delay(1000);
+    digitalWrite(BUZZER_PIN, LOW);
+    digitalWrite(LED_PIN, LOW);  // Apagar el LED
+  }
+}
+
+void Stop() {  
+  Serial.println("para motor");
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void turnRight() {  
+  Serial.println("ir derecha");
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void turnLeft() {  
+  Serial.println("ir izquierda");
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void moveForward() {  
+  Serial.println("ir adelante");
+  analogWrite(ENA, 80);
+  analogWrite(ENB, 80);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void moveForwardSlow () {
+  Serial.println("ir adelante pero lento");
+  analogWrite(ENA, 40);
+  analogWrite(ENB, 40);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void girarRightInfra() {
+Serial.println("detecte linea en la derecha voy a girar derecha ");
+  analogWrite(ENA, 130);
+  analogWrite(ENB, 130);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+
+void girarLeftInfra() {
+  Serial.println("detecte linea inzquierda girare izquierda");
+  analogWrite(ENA, 130);
+  analogWrite(ENB, 130);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+
+}
