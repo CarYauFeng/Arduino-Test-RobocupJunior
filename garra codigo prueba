@@ -1,0 +1,39 @@
+#include <Servo.h>
+#include <NewPing.h>
+
+#define TRIG_PIN A2
+#define ECHO_PIN A3
+#define MAX_DISTANCE 100
+#define DISTANCE_THRESHOLD 14
+
+Servo servo1;
+Servo servo2;
+NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DISTANCE);
+
+void setup() {
+  servo1.attach(8);  // Conecta el servo 1 al pin 8
+  servo2.attach(11); // Conecta el servo 2 al pin 11
+}
+
+void loop() {
+  delay(50); // Espera 50ms entre lecturas del sensor
+  int distance = sonar.ping_cm(); // Lee la distancia del sensor ultrasónico
+
+  if (distance <= DISTANCE_THRESHOLD && distance > 0) {
+    // Si detecta algo a 14cm o menos, mueve los servos
+    servo1.write(30); // Baja el brazo
+    delay(2000); // Espera mientras el brazo baja
+    servo2.write(0);
+    delay(600);
+    servo2.write(180); // Cierra la garra
+    delay(900); // Espera mientras la garra se cierra
+    servo1.write(0);
+
+    // Desactiva el sensor ultrasónico durante 10 segundos
+    delay(10000);
+  } else {
+    // Si no detecta nada, los servos giran
+    servo1.write(180); // Sube el brazo
+    servo2.write(0); // Abre la garra
+  }
+}
