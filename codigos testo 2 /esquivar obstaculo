@@ -1,0 +1,148 @@
+ #include <NewPing.h>
+
+int ENA = 10;  
+int IN1 = 4;   
+int IN2 = 5; 
+int ENB = 9;  
+int IN3 = 6;  
+int IN4 = 7;  
+
+int RIGHT = A5;  
+int LEFT = A6;   
+
+#define TRIG A2           
+#define ECHO A3           
+#define MAX_DISTANCE 100  
+
+NewPing sonar(TRIG, ECHO, MAX_DISTANCE);
+
+const int TILT_SENSOR = 2;
+
+void setup() {
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(RIGHT, INPUT);
+  pinMode(LEFT, INPUT);
+  pinMode(TILT_SENSOR, INPUT);
+  digitalWrite(TILT_SENSOR, HIGH);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int tiltState = digitalRead(TILT_SENSOR);
+  if (tiltState == LOW) {
+    Serial.println("inclinado avanzando lento ");
+    moveForwardFast();
+    return;  
+  }
+
+  delay(70);
+  int distance = sonar.ping_cm();
+  if (distance == 0) {
+    distance = 30;
+  }
+  if (distance <= 20 ) {  
+    Serial.println("detecte algo");
+    Stop();
+    delay(200);
+    turnRight();
+    delay(600);
+    moveForward();
+    delay(500);
+    turnLeft();
+    delay(550);
+    moveForward();
+    delay(700);
+    turnLeft();
+    delay(500);
+    moveForward();
+    delay(500);
+    turnRight();
+    delay(500);
+  }
+  if (analogRead(RIGHT) <= 35 && analogRead(LEFT) <= 35) {  
+    Serial.println("ir adelante");
+    analogWrite(ENA, 70);                                   
+    analogWrite(ENB, 70);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+
+  } else if (analogRead(RIGHT) <= 35 && !analogRead(LEFT) <= 35) {  
+    Serial.println("ir derecha");
+    analogWrite(ENA, 100);
+    analogWrite(ENB, 100);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+
+  } else if (!analogRead(RIGHT) <= 35 && analogRead(LEFT) <= 35) {  
+    Serial.println("ir izquierda");
+    analogWrite(ENA, 100);
+    analogWrite(ENB, 100);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+
+  } else if (!analogRead(RIGHT) <= 35 && !analogRead(LEFT) <= 35) {  
+    Serial.println("para");
+    Stop();
+  }
+}
+
+void Stop() {  
+  Serial.println("para motor");
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void turnRight() {  
+  Serial.println("ir derecha");
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void turnLeft() {  
+  Serial.println("ir izquierda");
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void moveForward() {  
+  Serial.println("ir adelante");
+  analogWrite(ENA,100);
+  analogWrite(ENB, 100);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void moveForwardFast () {
+  Serial.println("ir adelante pero rapido");
+  analogWrite(ENA, 130);
+  analogWrite(ENB, 130);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
