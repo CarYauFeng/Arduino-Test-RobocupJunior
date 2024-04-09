@@ -1,0 +1,87 @@
+#include <NewPing.h>
+
+int ENA = 10;  
+int IN1 = 4;   
+int IN2 = 5; 
+int ENB = 9;  
+int IN3 = 6;  
+int IN4 = 7;  
+
+int RIGHT = A0;  
+int LEFT = A1;   
+
+void setup() {
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(RIGHT, INPUT);
+  pinMode(LEFT, INPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (digitalRead(RIGHT) <= 35 && digitalRead(LEFT) <= 35) {  
+    Serial.println("ir adelante");
+    moveForward();
+
+  } else if (digitalRead(RIGHT) <= 35 && !digitalRead(LEFT) <= 35) {  
+    Serial.println("ir derecha");
+    Stop();
+    delay(20);
+    girarRightInfra();
+    delay(30);
+
+  } else if (!digitalRead(RIGHT) <= 35 && digitalRead(LEFT) <= 35) {  
+    Serial.println("ir izquierda");
+    Stop();
+    delay(20);
+    girarLeftInfra();
+    delay(30); 
+  } else if (!digitalRead(RIGHT) <= 35 && !digitalRead(LEFT) <= 35) {  
+    Serial.println("para");
+    Stop();
+  }
+}
+
+void Stop() {  
+  Serial.println("para motor");
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void moveForward() {  
+  Serial.println("ir adelante");
+  analogWrite(ENA, 125);
+  analogWrite(ENB, 125);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void girarRightInfra() {
+Serial.println("detecte linea en la derecha voy a girar derecha ");
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void girarLeftInfra() {
+  Serial.println("detecte linea inzquierda girare izquierda");
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
